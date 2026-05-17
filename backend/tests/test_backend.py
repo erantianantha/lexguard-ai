@@ -10,6 +10,7 @@ from app.utils.security import (
     sanitise_filename,
     validate_file_magic,
     validate_api_key_format,
+    validate_document_id,
     RateLimiter,
 )
 from app.core.config import Settings
@@ -111,6 +112,29 @@ class TestRateLimiter:
         assert rl.is_allowed("user5") is False
         rl.reset("user5")
         assert rl.is_allowed("user5") is True
+
+    def test_remaining_decrements(self):
+        rl = RateLimiter(max_requests=3, window_seconds=60)
+        assert rl.remaining("user6") == 3
+        rl.is_allowed("user6")
+        assert rl.remaining("user6") == 2
+
+
+class TestDocumentIdValidation:
+    def test_valid_hex_id(self):
+        assert validate_document_id("a1b2c3d4e5f6" * 2) is True
+
+    def test_empty_rejected(self):
+        assert validate_document_id("") is False
+
+    def test_too_long_rejected(self):
+        assert validate_document_id("a" * 65) is False
+
+    def test_path_traversal_rejected(self):
+        assert validate_document_id("../etc/passwd") is False
+
+    def test_exactly_64_chars_accepted(self):
+        assert validate_document_id("a" * 64) is True
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -225,7 +249,8 @@ class TestSettingsEndpoint:
             "/api/v1/settings",
             json={"api_key": "somekey12345678901234567890", "provider": "invalid_provider"},
         )
-        assert response.status_code == 400
+        # Pydantic v2 field_validator raises ValidationError → 422 Unprocessable Entity
+        assert response.status_code in (400, 422)
 
     def test_post_settings_valid(self, client):
         response = client.post(

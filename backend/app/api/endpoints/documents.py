@@ -29,6 +29,8 @@ from app.services.gcs_service import gcs_service
 from app.utils.security import (
     sanitise_filename,
     validate_file_magic,
+    validate_document_id,
+    sanitise_log_value,
     upload_rate_limiter,
     chat_rate_limiter,
 )
@@ -71,7 +73,10 @@ async def upload_document(
     if ext not in settings.ALLOWED_EXTENSIONS:
         raise HTTPException(
             status_code=400,
-            detail=f"Unsupported file type '{ext}'. Allowed: {', '.join(settings.ALLOWED_EXTENSIONS)}",
+            detail=(
+                f"Unsupported file type '{ext}'. "
+                f"Allowed: {', '.join(sorted(settings.ALLOWED_EXTENSIONS))}"
+            ),
         )
 
     # ── Read content ──────────────────────────────────────────────────────────
@@ -104,6 +109,13 @@ async def upload_document(
                 "Please go to Settings and enter your Gemini or OpenRouter API key first."
             ),
         )
+    logger.info(
+        "Upload accepted: %s (%s, %.1f KB) from %s",
+        sanitise_log_value(safe_name),
+        ext,
+        len(content) / 1024,
+        sanitise_log_value(ip),
+    )
 
     # ── Save to disk ──────────────────────────────────────────────────────────
     doc_id = uuid.uuid4().hex
@@ -160,10 +172,10 @@ async def _run_pipeline_bg(doc_record: DocumentRecord, filepath: str):
 
 
 @router.get("/list", response_model=list[DocumentListItem])
-async def list_documents(limit: int = 50, skip: int = 0):
-    """List all uploaded documents with basic metadata."""
-    if limit > 200:
-        limit = 200
+async def list_documents(limit: int = 50, skip: int = 0) -> list[DocumentListItem]:
+    """List uploaded documents with basic metadata. Max 200 per page."""
+    limit = max(1, min(limit, 200))  # clamp: 1 ≤ limit ≤ 200
+    skip = max(0, skip)
     docs = await db_service.list_documents(limit=limit, skip=skip)
     items = []
     for doc in docs:
@@ -195,7 +207,6 @@ async def list_supported_formats():
     Also reports which Google Cloud services are active.
     """
     from app.services.vision_service import vision_service
-    from app.services.document_processor import SUPPORTED_FORMATS
 
     format_details = {
         ".txt":  {"name": "Plain Text",         "ocr": False, "tables": False, "structure": True},
@@ -310,7 +321,7 @@ async def get_analysis(document_id: str):
         return pipeline.build_analysis_response(doc)
     except Exception as e:
         logger.error(f"Failed to build analysis response for {document_id}: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Failed to load analysis results.")
+        raise HTTPException(status_code=500, detail="Failed to load analysis results.")
 
 
 @router.post("/{document_id}/chat", response_model=ChatResponse)
@@ -353,7 +364,7 @@ async def chat_with_lawyer(document_id: str, request: ChatRequest, http_request:
     context_parts: list[str] = []
 
     # Contract metadata
-    meta = doc.get("metadata", {})
+    doc.get("metadata", {})
     context_parts.append(
         f"CONTRACT: {doc.get('original_filename', 'Unknown')}\n"
         f"Overall Risk: {doc.get('overall_severity', 'UNKNOWN')} ({doc.get('overall_risk_score', 0):.0f}/100)\n"
