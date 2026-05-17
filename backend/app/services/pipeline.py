@@ -1,15 +1,13 @@
 """
 LexGuard Pipeline — 3 API calls total (Extract → Batch Risk → Batch Deep).
 """
-import asyncio
 import logging
 import time
 from pathlib import Path
 
 from app.core.config import settings
 from app.models.schemas import (
-    DocumentRecord, DocumentStatus, DocumentMetadata, RiskAnalysis,
-    PrivacyComplianceResult, MarketBenchmarkResult, RelationshipMappingResult,
+    DocumentRecord, DocumentStatus, DocumentMetadata, PrivacyComplianceResult, MarketBenchmarkResult, RelationshipMappingResult,
 )
 from app.services.analysis_engine import AnalysisEngine
 from app.services.database import db_service
@@ -27,7 +25,7 @@ class PipelineOrchestrator:
         self.analysis_engine = AnalysisEngine()
 
     async def _progress(self, doc_id: str, *, status, message: str, percent: int, step: str, detail: str = ""):
-        await progress_service.emit_progress(
+        await progress_service.emit(
             doc_id, status=status, message=message,
             percent=percent, step=step, detail=detail
         )
