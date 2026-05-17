@@ -1,0 +1,1 @@
+# LexGuard Backend Application

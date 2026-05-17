@@ -1,0 +1,50 @@
+.doc-card {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; cursor: pointer; gap: 16px;
+}
+.doc-card-left { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; }
+.doc-icon {
+  width: 44px; height: 44px; border-radius: var(--radius-md);
+  border: 1px solid; display: flex; align-items: center; justify-content: center;
+  background: var(--bg-glass); flex-shrink: 0;
+}
+.doc-info { min-width: 0; }
+.doc-name {
+  font-size: 0.9rem; font-weight: 600; color: var(--text-primary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px;
+}
+.doc-meta {
+  display: flex; gap: 12px; font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;
+}
+.doc-meta span { display: flex; align-items: center; gap: 4px; }
+
+.doc-card-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+
+.risk-score-mini { position: relative; width: 40px; height: 40px; }
+.risk-ring { width: 100%; height: 100%; transform: rotate(-90deg); }
+.risk-number {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-size: 0.7rem; font-weight: 700; color: var(--text-primary);
+}
+
+.doc-status { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 500; }
+.doc-status.processing { color: var(--accent-primary); }
+.doc-status.failed { color: var(--severity-critical); }
+
+.pulse-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent-primary);
+  animation: pulse-glow 1.5s ease-in-out infinite;
+}
+
+.doc-delete {
+  background: none; border: none; color: var(--text-muted); cursor: pointer;
+  padding: 6px; border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  opacity: 0;
+}
+.doc-card:hover .doc-delete { opacity: 1; }
+.doc-delete:hover { color: var(--severity-critical); background: var(--severity-critical-bg); }
+
+.doc-chevron { color: var(--text-muted); transition: transform var(--transition-fast); }
+.doc-card:hover .doc-chevron { transform: translateX(2px); color: var(--accent-primary); }

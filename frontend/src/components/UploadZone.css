@@ -1,0 +1,56 @@
+.upload-zone-wrapper { max-width: 680px; margin: 0 auto; }
+
+.upload-zone {
+  padding: 60px 40px;
+  text-align: center;
+  cursor: pointer;
+  border: 2px dashed var(--border-medium);
+  transition: all var(--transition-base);
+}
+.upload-zone:hover, .upload-zone.drag-active {
+  border-color: var(--accent-primary);
+  background: rgba(99, 102, 241, 0.04);
+  box-shadow: var(--shadow-glow);
+}
+.upload-zone.uploading { pointer-events: none; border-style: solid; border-color: var(--accent-primary); }
+.upload-zone-content { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+
+.upload-icon-wrapper {
+  width: 80px; height: 80px;
+  background: var(--accent-gradient);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 8px;
+  box-shadow: 0 0 30px var(--accent-primary-glow);
+}
+.upload-icon { color: white; }
+.upload-icon.spinning { animation: spin 1.2s linear infinite; color: var(--accent-primary); }
+
+.upload-zone h3 { font-size: 1.25rem; color: var(--text-primary); }
+.upload-zone p { color: var(--text-secondary); font-size: 0.875rem; }
+
+.file-types { display: flex; gap: 8px; margin-top: 4px; }
+.file-type-badge {
+  padding: 4px 12px; font-size: 0.7rem; font-weight: 600;
+  background: var(--bg-glass); border: 1px solid var(--border-subtle);
+  border-radius: 20px; color: var(--text-secondary);
+}
+.upload-hint { font-size: 0.75rem; color: var(--text-muted); }
+
+.progress-bar {
+  width: 200px; height: 4px; background: var(--bg-secondary);
+  border-radius: 2px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; background: var(--accent-gradient);
+  transition: width 0.5s ease;
+  border-radius: 2px;
+}
+
+.upload-message {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 16px; border-radius: var(--radius-md);
+  margin-top: 16px; font-size: 0.875rem; font-weight: 500;
+}
+.upload-message.error { background: var(--severity-critical-bg); color: var(--severity-critical); }
+.upload-message.success { background: var(--severity-low-bg); color: var(--severity-low); }
