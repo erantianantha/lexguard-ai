@@ -10,7 +10,6 @@ import asyncio
 import json
 import logging
 import re
-from typing import Optional
 
 import httpx
 from google import genai
@@ -18,8 +17,7 @@ from google.genai import types
 
 from app.core.config import settings
 from app.models.schemas import (
-    ExtractedClause, RiskAnalysis, Recommendation, ContributingFactor,
-    SupportingEvidence, UserImpact, FinancialExposure, ImplicationsResult,
+    ExtractedClause, RiskAnalysis, Recommendation, FinancialExposure, ImplicationsResult,
     Scenario, AmbiguityResult, MarketBenchmarkResult, PrivacyComplianceResult,
     RelationshipMappingResult, NegotiationGuidanceResult,
 )
@@ -170,7 +168,7 @@ class AnalysisEngine:
                 if isinstance(content, list):
                     content = "".join(p.get("text", "") if isinstance(p, dict) else str(p) for p in content)
                 return str(content)
-            except httpx.HTTPError as e:
+            except httpx.HTTPError:
                 if attempt < retries - 1:
                     await asyncio.sleep((attempt + 1) * 5)
                     continue
@@ -244,7 +242,8 @@ Contract:
                 ))
             return clauses
         except Exception as e:
-            if any(x in str(e) for x in ["429", "RESOURCE_EXHAUSTED", "quota", "API_KEY"]):
+            error_str = str(e).lower()
+            if any(x in error_str for x in ["429", "resource_exhausted", "quota", "api key", "api_key", "permission_denied"]):
                 raise
             logger.error(f"Clause extraction failed: {e}")
             return []
