@@ -3,9 +3,6 @@
   "outputDirectory": "dist",
   "installCommand": "npm install",
   "framework": "vite",
-  "env": {
-    "VITE_API_URL": "https://lexguard-ai-p6aa.onrender.com/api/v1"
-  },
   "rewrites": [
     {
       "source": "/(.*)",

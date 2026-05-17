@@ -1,4 +1,7 @@
-const API_BASE = import.meta.env.VITE_API_URL || '/api/v1';
+// API base URL: set via VITE_API_URL env var (Vercel dashboard or vercel.json).
+// Fallback to the Render backend — never use a relative path in production.
+const _rawBase = import.meta.env.VITE_API_URL || 'https://lexguard-ai-p6aa.onrender.com/api/v1';
+const API_BASE = _rawBase.replace(/\/$/, ''); // strip trailing slash
 
 function formatApiError(detail: unknown, fallback: string): string {
   if (typeof detail === 'string') return detail;
