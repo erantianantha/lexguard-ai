@@ -57,12 +57,10 @@ backend/test_samples/
 /tmp/
 
 # Google Cloud credentials (NEVER commit these)
-*.json
-!package.json
-!tsconfig*.json
-!vite.config*.json
 service-account*.json
 sa-key*.json
+*-credentials.json
+gcp-key*.json
 
 # Misc
 *.bak

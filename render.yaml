@@ -1,0 +1,55 @@
+# Render deployment configuration for LexGuard Backend
+# Docs: https://render.com/docs/render-yaml
+
+services:
+  - type: web
+    name: lexguard-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+
+    # Free tier: 512MB RAM, shared CPU, spins down after 15min inactivity
+    # Upgrade to "starter" ($7/mo) for always-on
+    plan: free
+
+    envVars:
+      # ── LLM (set ONE of these) ──────────────────────────────
+      - key: LLM_PROVIDER
+        value: gemini           # or "openrouter"
+
+      - key: GEMINI_API_KEY
+        sync: false             # set manually in Render dashboard
+
+      - key: OPENROUTER_API_KEY
+        sync: false             # alternative to Gemini
+
+      # ── App ─────────────────────────────────────────────────
+      - key: PORT
+        value: "10000"          # Render assigns PORT automatically, this is a fallback
+
+      - key: DEBUG
+        value: "false"
+
+      - key: GEMINI_MODEL
+        value: gemini-2.0-flash
+
+      - key: OPENROUTER_MODEL
+        value: google/gemini-2.0-flash-001
+
+      # ── Database (optional — in-memory used if not set) ─────
+      # Uncomment and set if you add a MongoDB/Render DB:
+      # - key: MONGODB_URL
+      #   sync: false
+
+      # ── Google Cloud (optional — for GCS + Firestore) ───────
+      # - key: GOOGLE_CLOUD_PROJECT
+      #   sync: false
+      # - key: GCS_BUCKET_NAME
+      #   sync: false
+
+      # ── CORS (set after frontend is deployed) ───────────────
+      - key: CORS_ORIGINS
+        value: "*"              # tighten this to your Vercel URL after deploy
+
+    healthCheckPath: /health
+    autoDeploy: true
