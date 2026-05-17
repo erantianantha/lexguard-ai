@@ -27,12 +27,22 @@ function App() {
   const [settingsMsg, setSettingsMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<string>('gemini');
 
-  const fetchServerSettings = useCallback(async () => {
-    try {
-      const s = await getSettings();
-      setServerSettings(s);
-      setSelectedProvider(s.provider || 'gemini');
-    } catch { /* backend may not be ready */ }
+  const fetchServerSettings = useCallback(async (retries = 3) => {
+    for (let i = 0; i < retries; i++) {
+      try {
+        const s = await getSettings();
+        setServerSettings(s);
+        setSelectedProvider(s.provider || 'gemini');
+        return;
+      } catch {
+        if (i < retries - 1) {
+          // Render free tier cold-starts can take 20-30s — wait before retry
+          await new Promise(r => setTimeout(r, 8000));
+        }
+      }
+    }
+    // After all retries, set an offline marker so UI shows useful message
+    setServerSettings({ provider: '', model: '', configured: false, gemini_key_set: false, openrouter_key_set: false } as any);
   }, []);
 
   useEffect(() => { fetchServerSettings(); }, [fetchServerSettings]);
@@ -379,7 +389,7 @@ function App() {
                 <h1>App <span className="gradient-text">Settings</span></h1>
                 <p>Configure your AI provider and API key. Changes take effect immediately — no restart needed.</p>
               </div>
-              <button className="btn-secondary" onClick={fetchServerSettings}>
+              <button className="btn-secondary" onClick={() => fetchServerSettings()}>
                 <RefreshCw size={16} /> Refresh Status
               </button>
             </div>
@@ -387,7 +397,7 @@ function App() {
             {/* Status Card */}
             <div className="card" style={{ maxWidth: 640, margin: '0 auto 1.5rem', padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', gap: 12 }}>
               {serverSettings === null ? (
-                <><Loader size={18} className="spin" /><span style={{ color: 'var(--text-secondary)' }}>Checking backend status...</span></>
+                <><Loader size={18} className="spin" /><span style={{ color: 'var(--text-secondary)' }}>Connecting to backend… (may take ~30s on first load)</span></>
               ) : serverSettings.configured ? (
                 <><CheckCircle size={20} color="#22c55e" />
                   <div>
